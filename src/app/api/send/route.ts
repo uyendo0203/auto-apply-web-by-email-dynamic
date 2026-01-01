@@ -17,31 +17,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. LOGIC CHUYỂN ĐỔI GIỮA LOCAL VÀ PRODUCTION
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
-    let transporterConfig;
-
-    if (isDevelopment) {
-      transporterConfig = {
-        host: process.env.MAILTRAP_HOST,
-        port: Number(process.env.MAILTRAP_PORT),
-        auth: {
-          user: process.env.MAILTRAP_USER,
-          pass: process.env.MAILTRAP_PASS,
-        },
-      };
-    } else {
-      transporterConfig = {
-        service: 'gmail',
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-      };
-    }
-
-    const transporter = nodemailer.createTransport(transporterConfig);
+    // 2. GMAIL TRANSPORTER
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
 
     // 3. CHUẨN BỊ ATTACHMENTS (CV)
     const attachments = [];

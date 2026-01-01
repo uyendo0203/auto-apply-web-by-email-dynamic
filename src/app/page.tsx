@@ -1,65 +1,201 @@
-import Image from "next/image";
+'use client';
+import { useState, useEffect } from 'react';
+
+interface CV {
+  name: string;
+  url: string;
+}
 
 export default function Home() {
+  // Mẫu Template gốc để dùng làm căn cứ thay thế
+  const templateBase = `<p>Dear <strong>[HR Name]</strong>,</p>
+<p>My name is Uyen Do, and I am a Frontend Developer with over 6 years of experience building user-friendly and performant web applications. I am very interested in applying for the <strong>[Job Title]</strong> position at <strong>[Company Name]</strong>.</p>
+<p>In my previous roles, I have developed and optimized multiple web projects using technologies such as HTML5, CSS3/SCSS, JavaScript, React.js, Next.js, Nuxt.js, and Tailwind CSS. I am also experienced with creating engaging UI/UX using GSAP, Three.js, and implementing analytics and SEO optimization. I have worked closely with both designers and backend developers, as well as integrated APIs and CMS systems to deliver complete solutions.</p>
+<p>I believe my technical expertise, problem-solving skills, and ability to collaborate effectively in teams will allow me to contribute positively to your projects. I would be grateful for the opportunity to further discuss how my skills can support your company's goals.</p>
+<p>Please find my CV attached for your review.<br>Thank you for your time and consideration.</p>
+<p>Best regards,<br><strong>Uyen Do</strong><br>Frontend Developer<br>Phone: (+84) 938 822 524</p>`;
+
+  const [formData, setFormData] = useState({
+    companyName: '',
+    jobTitle: '',
+    contactName: '',
+    recipientEmail: '',
+    //  companyName: 'TGL Solutions',
+    // jobTitle: 'Frontend Developer',
+    // contactName: 'HR Department',
+    // recipientEmail: 'test-email@gmail.com',
+    passcode: '',
+    emailContent: '' // Sẽ được cập nhật tự động qua useEffect
+  });
+
+  // LOGIC QUAN TRỌNG: Tự động cập nhật Email Content khi các Input thay đổi
+  useEffect(() => {
+    const updatedContent = templateBase
+      .replace(/\[HR Name\]/g, formData.contactName || 'HR Team')
+      .replace(/\[Job Title\]/g, formData.jobTitle || 'Frontend Developer')
+      .replace(/\[Company Name\]/g, formData.companyName || 'Your Company');
+    
+    setFormData(prev => ({ ...prev, emailContent: updatedContent }));
+  }, [formData.companyName, formData.jobTitle, formData.contactName]);
+
+  // --- GIỮ NGUYÊN PHẦN LOGIC CV MANAGER CỦA BẠN ---
+  const [cvList, setCvList] = useState<CV[]>([]);
+  const [selectedCV, setSelectedCV] = useState<CV | null>(null);
+  const [cvFileData, setCvFileData] = useState<any>(null);
+  const [status, setStatus] = useState<{ type: 'success' | 'error' | ''; message: string }>({ type: '', message: '' });
+  const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+
+  useEffect(() => {
+    loadCVList();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const cv = (window as any).cvFileData;
+      if (cv && cv.base64) {
+        setCvFileData(cv);
+        clearInterval(interval);
+      }
+    }, 300);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadCVList = async () => {
+    try {
+      const res = await fetch('/api/cvs');
+      const data = await res.json();
+      setCvList(data.cvs || []);
+      if (data.cvs && data.cvs.length > 0) selectCV(data.cvs[0]);
+    } catch (error) { console.error('Error:', error); }
+  };
+
+  const selectCV = (cv: CV) => {
+    setSelectedCV(cv);
+    fetch(cv.url).then(res => res.blob()).then(blob => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const cvData = { name: cv.name, base64: event.target?.result, type: blob.type };
+        setCvFileData(cvData);
+        (window as any).cvFileData = cvData;
+      };
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (res.ok) {
+        setUploadMessage(`✅ Uploaded: ${data.filename}`);
+        loadCVList();
+        setTimeout(() => setUploadMessage(''), 3000);
+      }
+    } finally { setUploading(false); }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEmailContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, emailContent: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/send', {
+        method: 'POST',
+        body: JSON.stringify({ ...formData, cvFile: cvFileData?.base64 || null, cvFileName: cvFileData?.name || null }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        setStatus({ type: 'success', message: '✅ Gửi thành công!' });
+        setFormData(prev => ({ ...prev, companyName: '', recipientEmail: '', passcode: '' }));
+      } else {
+        const result = await res.json();
+        setStatus({ type: 'error', message: `❌ Lỗi: ${result.error}` });
+      }
+    } finally { setLoading(false); }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-slate-100 p-4 md:p-8 flex justify-center items-center">
+      <form onSubmit={handleSubmit} className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-5xl space-y-5 border border-slate-200">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-extrabold text-slate-900 flex justify-center items-center gap-2">Auto Apply Tool 🚀</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Tên công ty</label>
+              <input name="companyName" value={formData.companyName} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" required />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Vị trí ứng tuyển</label>
+              <input name="jobTitle" value={formData.jobTitle} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" required />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Tên HR</label>
+                <input name="contactName" value={formData.contactName} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Email nhận (HR)</label>
+                <input name="recipientEmail" type="email" value={formData.recipientEmail} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" required />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-sm font-bold text-slate-700">Nội dung email</label>
+                <button type="button" onClick={() => setShowPreview(!showPreview)} className="text-sm px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold">{showPreview ? '✏️ Sửa' : '👁️ Xem thử'}</button>
+              </div>
+              {!showPreview ? (
+                <textarea value={formData.emailContent} onChange={handleEmailContentChange} className="w-full h-64 p-4 border-2 border-slate-300 rounded-lg outline-none font-mono text-sm" />
+              ) : (
+                <div className="bg-slate-50 border-2 border-slate-300 rounded-lg p-6 min-h-64 overflow-y-auto prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: formData.emailContent }} />
+              )}
+            </div>
+
+            <div className="pt-4 border-t">
+              <label className="block text-sm font-bold text-red-700 mb-1">Passcode</label>
+              <input name="passcode" type="password" value={formData.passcode} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-red-50 border-red-200" required />
+            </div>
+            <button disabled={loading} type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 shadow-lg">{loading ? '⏳ Đang gửi...' : '📧 Gửi Email Ứng Tuyển'}</button>
+            {status.message && <div className={`p-4 rounded-lg text-center font-bold ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{status.message}</div>}
+          </div>
+
+          {/* --- GIỮ NGUYÊN UI CV MANAGER --- */}
+          <div className="lg:col-span-1">
+            <div className="bg-slate-50 border-2 border-slate-300 rounded-lg p-4 sticky top-20">
+              <h3 className="font-bold text-slate-900 mb-4">📄 Quản lý CV</h3>
+              <div className="space-y-3">
+                <select value={selectedCV?.name || ''} onChange={(e) => { const cv = cvList.find(c => c.name === e.target.value); if (cv) selectCV(cv); }} className="w-full px-3 py-2 border-2 border-blue-500 rounded-lg text-sm font-semibold">
+                  <option value="">-- Chọn CV --</option>
+                  {cvList.map(cv => <option key={cv.name} value={cv.name}>{cv.name}</option>)}
+                </select>
+                <label className="block w-full px-4 py-2 bg-green-500 text-white rounded-lg font-semibold text-sm cursor-pointer text-center hover:bg-green-600 transition-all">📤 Tải CV mới<input type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} /></label>
+                {selectedCV && <a href={selectedCV.url} target="_blank" className="block w-full text-center py-2 bg-purple-500 text-white rounded-lg font-semibold text-sm">👁️ Xem CV</a>}
+                {uploadMessage && <div className={`px-3 py-2 rounded-lg text-xs font-semibold text-white text-center ${uploadMessage.includes('✅') ? 'bg-green-500' : 'bg-red-500'}`}>{uploadMessage}</div>}
+                {selectedCV && <div className="bg-white p-3 rounded border border-slate-200"><p className="text-xs font-semibold text-slate-600 mb-1">File hiện tại:</p><p className="text-sm text-slate-900 font-mono truncate">{selectedCV.name}</p></div>}
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </form>
+    </main>
   );
 }

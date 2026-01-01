@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getDB } from '@/lib/db';
+import { appendFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 export async function POST(req: Request) {
   try {
     const { companyName, jobTitle, contactName, recipientEmail, passcode, emailContent, cvFile, cvFileName } = await req.json();
 
-    // 1. KIỂM TRA PASSCODE ĐỂ BẢO MẬT
+    // 1. KIỂM TRA PASSCODE
     const APP_SECRET = process.env.SECRET_PASSCODE;
     if (!passcode || passcode !== APP_SECRET) {
       return NextResponse.json(
@@ -14,14 +17,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. LOGIC TỰ ĐỘNG CHUYỂN ĐỔI (SWITCH) GIỮA LOCAL VÀ PRODUCTION
+    // 2. LOGIC CHUYỂN ĐỔI GIỮA LOCAL VÀ PRODUCTION
     const isDevelopment = process.env.NODE_ENV === 'development';
     
     let transporterConfig;
 
     if (isDevelopment) {
-      // Cấu hình Mailtrap khi chạy localhost
-      console.log("🚀 Chế độ TEST: Đang sử dụng Mailtrap");
       transporterConfig = {
         host: process.env.MAILTRAP_HOST,
         port: Number(process.env.MAILTRAP_PORT),
@@ -31,8 +32,6 @@ export async function POST(req: Request) {
         },
       };
     } else {
-      // Cấu hình Gmail khi đã deploy lên Vercel
-      console.log("🌍 Chế độ PRODUCTION: Đang sử dụng Gmail");
       transporterConfig = {
         service: 'gmail',
         auth: {
@@ -48,11 +47,9 @@ export async function POST(req: Request) {
     const attachments = [];
     
     if (cvFile) {
-      // Convert base64 to buffer
       const base64Data = cvFile.split(',')[1] || cvFile;
       const buffer = Buffer.from(base64Data, 'base64');
       
-      // Xác định loại file từ cvFile header
       const mimeType = cvFile.includes('pdf') ? 'application/pdf' : 'application/msword';
       const filename = cvFileName || `Uyen_Do_CV.${mimeType.includes('pdf') ? 'pdf' : 'docx'}`;
       
@@ -63,24 +60,79 @@ export async function POST(req: Request) {
       });
     }
 
-    // 4. NỘI DUNG EMAIL ỨNG TUYỂN
+    // 4. NỘI DUNG EMAIL
     const mailOptions = {
       from: `"Uyen Do" <${process.env.GMAIL_USER}>`,
       to: recipientEmail,
       subject: `[Application] ${jobTitle} - Uyen Do`,
       html: emailContent,
       replyTo: process.env.GMAIL_USER,
-      attachments: attachments, // Đính kèm CV
+      attachments: attachments,
     };
 
     // 5. GỬI EMAIL
     const info = await transporter.sendMail(mailOptions);
     console.log("✅ Email sent successfully:", info.response);
 
-    return NextResponse.json(
-      { message: 'Email sent successfully', messageId: info.messageId },
-      { status: 200 }
-    );
+    // 6. LƯU VÀO DATABASE
+    try {
+      const db = getDB();
+      const stmt = db.prepare(`
+        INSERT INTO sent_emails (company_name, job_title, contact_name, recipient_email, email_content, cv_filename, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      const result = stmt.run(
+        companyName,
+        jobTitle,
+        contactName || null,
+        recipientEmail,
+        emailContent,
+        cvFileName || null,
+        'success'
+      );
+
+      // 7. LƯU VÀO FILE MARKDOWN
+      try {
+        const mdFilePath = join(process.cwd(), 'public', 'company-email.md');
+        const timestamp = new Date().toLocaleString('vi-VN');
+        
+        // Tạo header nếu file chưa tồn tại
+        let mdContent = '';
+        if (!existsSync(mdFilePath)) {
+          mdContent = `# 📧 Danh Sách Email Nhà Tuyển Dụng\n\n`;
+        }
+
+        // Thêm entry mới
+        mdContent += `## ${companyName}\n`;
+        mdContent += `- **Email:** ${recipientEmail}\n`;
+        mdContent += `- **Vị Trí:** ${jobTitle}\n`;
+        mdContent += `- **Người liên hệ:** ${contactName || 'N/A'}\n`;
+        mdContent += `- **CV:** ${cvFileName || 'Không có'}\n`;
+        mdContent += `- **Ngày gửi:** ${timestamp}\n`;
+        mdContent += `\n---\n\n`;
+
+        appendFileSync(mdFilePath, mdContent, 'utf-8');
+        console.log(`✅ Markdown file updated: ${mdFilePath}`);
+      } catch (mdError) {
+        console.error('⚠️ Markdown save error (non-critical):', mdError);
+      }
+
+      return NextResponse.json(
+        { 
+          message: 'Email sent successfully', 
+          messageId: info.messageId,
+          emailId: result.lastInsertRowid
+        },
+        { status: 200 }
+      );
+    } catch (dbError) {
+      console.error('❌ Database error:', dbError);
+      return NextResponse.json(
+        { message: 'Email sent but database save failed', messageId: info.messageId },
+        { status: 200 }
+      );
+    }
   } catch (error: any) {
     console.error('❌ Error sending email:', error);
     return NextResponse.json(

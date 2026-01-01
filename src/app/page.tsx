@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface CV {
   name: string;
@@ -13,7 +14,7 @@ export default function Home() {
 <p>In my previous roles, I have developed and optimized multiple web projects using technologies such as HTML5, CSS3/SCSS, JavaScript, React.js, Next.js, Nuxt.js, and Tailwind CSS. I am also experienced with creating engaging UI/UX using GSAP, Three.js, and implementing analytics and SEO optimization. I have worked closely with both designers and backend developers, as well as integrated APIs and CMS systems to deliver complete solutions.</p>
 <p>I believe my technical expertise, problem-solving skills, and ability to collaborate effectively in teams will allow me to contribute positively to your projects. I would be grateful for the opportunity to further discuss how my skills can support your company's goals.</p>
 <p>Please find my CV attached for your review.<br>Thank you for your time and consideration.</p>
-<p>Best regards,<br><strong>Uyen Do</strong><br>Frontend Developer<br>Phone: (+84) 938 822 524</p>`;
+<p>Best regards,<br><br><strong>Uyen Do</strong><br>Frontend Developer<br>Phone: (+84) 938 822 524</p>`;
 
   const [formData, setFormData] = useState({
     companyName: '',
@@ -21,8 +22,8 @@ export default function Home() {
     contactName: '',
     recipientEmail: '',
     //  companyName: 'TGL Solutions',
-    // jobTitle: 'Frontend Developer',
-    // contactName: 'HR Department',
+    jobTitle: 'Frontend Developer',
+    contactName: 'HR Department',
     // recipientEmail: 'test-email@gmail.com',
     passcode: '',
     emailContent: '' // Sẽ được cập nhật tự động qua useEffect
@@ -30,10 +31,17 @@ export default function Home() {
 
   // LOGIC QUAN TRỌNG: Tự động cập nhật Email Content khi các Input thay đổi
   useEffect(() => {
-    const updatedContent = templateBase
+    let updatedContent = templateBase
       .replace(/\[HR Name\]/g, formData.contactName || 'HR Team')
-      .replace(/\[Job Title\]/g, formData.jobTitle || 'Frontend Developer')
-      .replace(/\[Company Name\]/g, formData.companyName || 'Your Company');
+      .replace(/\[Job Title\]/g, formData.jobTitle || 'Frontend Developer');
+    
+    // Xử lý Company Name khác nhau
+    if (formData.companyName) {
+      updatedContent = updatedContent.replace(/\[Company Name\]/g, formData.companyName);
+    } else {
+      // Nếu không có company name, hiển thị plain text mà không strong
+      updatedContent = updatedContent.replace(/<strong>\[Company Name\]<\/strong>/g, 'your company');
+    }
     
     setFormData(prev => ({ ...prev, emailContent: updatedContent }));
   }, [formData.companyName, formData.jobTitle, formData.contactName]);
@@ -44,7 +52,7 @@ export default function Home() {
   const [cvFileData, setCvFileData] = useState<any>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | ''; message: string }>({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
 
@@ -133,8 +141,27 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-100 p-4 md:p-8 flex justify-center items-center">
       <form onSubmit={handleSubmit} className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-5xl space-y-5 border border-slate-200">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-extrabold text-slate-900 flex justify-center items-center gap-2">Auto Apply Tool 🚀</h1>
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-extrabold text-slate-900 flex justify-center items-center gap-2">
+              Auto Apply Tool <span className="text-4xl">🚀</span>
+            </h1>
+            <p className="text-slate-500 mt-2">Gửi CV chuyên nghiệp chỉ trong tích tắc</p>
+          </div>
+          <div className="flex gap-3">
+            <Link
+              href="/cvs"
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all whitespace-nowrap"
+            >
+              📄 Quản Lý CV
+            </Link>
+            <Link
+              href="/emails"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all whitespace-nowrap"
+            >
+              📊 Quản Lý Mail
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

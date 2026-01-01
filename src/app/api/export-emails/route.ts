@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       color: { argb: 'FFFFFFFF' },
       size: 12,
     };
-    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'center' };
+    worksheet.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
 
     // Thêm dữ liệu
     emails.forEach((email, index) => {
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
       // Style dữ liệu
       row.font = { size: 11 };
-      row.alignment = { horizontal: 'left', vertical: 'center' };
+      row.alignment = { horizontal: 'left', vertical: 'middle' };
       
       // Alternate row colors
       if (index % 2 === 0) {

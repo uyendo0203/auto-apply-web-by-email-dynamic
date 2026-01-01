@@ -18,13 +18,9 @@ export default function Home() {
 
   const [formData, setFormData] = useState({
     companyName: '',
-    jobTitle: '',
-    contactName: '',
-    recipientEmail: '',
-    //  companyName: 'TGL Solutions',
     jobTitle: 'Frontend Developer',
     contactName: 'HR Department',
-    // recipientEmail: 'test-email@gmail.com',
+    recipientEmail: '',
     passcode: '',
     emailContent: '' // Sẽ được cập nhật tự động qua useEffect
   });

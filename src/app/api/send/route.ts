@@ -6,32 +6,18 @@ import { join } from 'path';
 
 export async function POST(req: Request) {
   try {
-    const { companyName, jobTitle, contactName, recipientEmail, passcode, emailContent, cvFile, cvFileName } = await req.json();
+    // 1. KIỂM TRA API KEY TỪ HEADER
+    const apiKey = req.headers.get('x-api-key');
+    const VALID_API_KEY = process.env.API_KEY;
 
-    // 1. KIỂM TRA PASSCODE - Thêm log debug
-    const APP_SECRET = process.env.SECRET_PASSCODE;
-    
-    console.log('=== DEBUG PASSCODE ===');
-    console.log('Received passcode:', passcode);
-    console.log('Expected passcode:', APP_SECRET);
-    console.log('Are they equal?', passcode === APP_SECRET);
-    console.log('Type of received:', typeof passcode);
-    console.log('Type of expected:', typeof APP_SECRET);
-    console.log('=== END DEBUG ===');
-
-    if (!passcode || passcode !== APP_SECRET) {
+    if (!apiKey || apiKey !== VALID_API_KEY) {
       return NextResponse.json(
-        { 
-          error: 'Mã xác thực (Passcode) không đúng!',
-          debug: {
-            received: passcode,
-            expected: APP_SECRET,
-            match: passcode === APP_SECRET
-          }
-        }, 
+        { error: '❌ API Key không hợp lệ! Truy cập bị từ chối.' },
         { status: 401 }
       );
     }
+
+    const { companyName, jobTitle, contactName, recipientEmail, emailContent, cvFile, cvFileName } = await req.json();
 
     // 2. GMAIL TRANSPORTER
     const transporter = nodemailer.createTransport({
@@ -119,7 +105,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json(
         { 
-          message: 'Email sent successfully', 
+          message: '✅ Email sent successfully', 
           messageId: info.messageId,
           emailId: result.lastInsertRowid
         },

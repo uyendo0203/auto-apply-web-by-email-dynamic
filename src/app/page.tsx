@@ -115,23 +115,53 @@ export default function Home() {
     setFormData(prev => ({ ...prev, emailContent: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setStatus({ message: '', type: '' });
+
     try {
       const res = await fetch('/api/send', {
         method: 'POST',
-        body: JSON.stringify({ ...formData, cvFile: cvFileData?.base64 || null, cvFileName: cvFileData?.name || null }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'uyen_auto_apply_2025_secret_key_12345', // ← Thêm API Key
+        },
+        body: JSON.stringify({
+          companyName: formData.companyName,
+          jobTitle: formData.jobTitle,
+          contactName: formData.contactName,
+          recipientEmail: formData.recipientEmail,
+          emailContent: formData.emailContent,
+          cvFile: cvFileData?.base64 || null,
+          cvFileName: cvFileData?.name || null,
+        }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
-        setStatus({ type: 'success', message: '✅ Gửi thành công!' });
-        setFormData(prev => ({ ...prev, companyName: '', recipientEmail: '', passcode: '' }));
+        setStatus({ message: '✅ Email sent successfully!', type: 'success' });
+        // Reset form
+        setFormData({
+          companyName: '',
+          jobTitle: 'Frontend Developer',
+          contactName: 'HR Department',
+          recipientEmail: '',
+          emailContent: '',
+        });
+        setCvFileData(null);
       } else {
-        const result = await res.json();
-        setStatus({ type: 'error', message: `❌ Lỗi: ${result.error}` });
+        setStatus({ 
+          message: data.error || '❌ Failed to send email', 
+          type: 'error' 
+        });
       }
-    } finally { setLoading(false); }
+    } catch (error) {
+      setStatus({ message: '❌ Error sending email', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -193,10 +223,21 @@ export default function Home() {
               )}
             </div>
 
-            <div className="pt-4 border-t">
-              <label className="block text-sm font-bold text-red-700 mb-1">Passcode</label>
-              <input name="passcode" type="password" value={formData.passcode} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-red-50 border-red-200" required />
+            {/* Ẩn trường Passcode tạm thời */}
+            {/* 
+            <div className="pt-4 border-t border-slate-100">
+              <label className="block text-sm font-bold text-red-700 mb-1 ml-1">Mã xác thực (Passcode)</label>
+              <input 
+                name="passcode" 
+                type="password"
+                value={formData.passcode}
+                onChange={handleChange}
+                placeholder="Nhập mã bí mật của bạn" 
+                required 
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-red-50"
+              />
             </div>
+            */}
             <button disabled={loading} type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 shadow-lg">{loading ? '⏳ Đang gửi...' : '📧 Gửi Email Ứng Tuyển'}</button>
             {status.message && <div className={`p-4 rounded-lg text-center font-bold ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{status.message}</div>}
           </div>

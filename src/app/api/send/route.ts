@@ -8,11 +8,27 @@ export async function POST(req: Request) {
   try {
     const { companyName, jobTitle, contactName, recipientEmail, passcode, emailContent, cvFile, cvFileName } = await req.json();
 
-    // 1. KIỂM TRA PASSCODE
+    // 1. KIỂM TRA PASSCODE - Thêm log debug
     const APP_SECRET = process.env.SECRET_PASSCODE;
+    
+    console.log('=== DEBUG PASSCODE ===');
+    console.log('Received passcode:', passcode);
+    console.log('Expected passcode:', APP_SECRET);
+    console.log('Are they equal?', passcode === APP_SECRET);
+    console.log('Type of received:', typeof passcode);
+    console.log('Type of expected:', typeof APP_SECRET);
+    console.log('=== END DEBUG ===');
+
     if (!passcode || passcode !== APP_SECRET) {
       return NextResponse.json(
-        { error: 'Mã xác thực (Passcode) không đúng!' }, 
+        { 
+          error: 'Mã xác thực (Passcode) không đúng!',
+          debug: {
+            received: passcode,
+            expected: APP_SECRET,
+            match: passcode === APP_SECRET
+          }
+        }, 
         { status: 401 }
       );
     }

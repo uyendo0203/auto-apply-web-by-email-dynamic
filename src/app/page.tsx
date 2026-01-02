@@ -21,7 +21,6 @@ export default function Home() {
     jobTitle: 'Frontend Developer',
     contactName: 'HR Department',
     recipientEmail: '',
-    passcode: '',
     emailContent: '' // Sẽ được cập nhật tự động qua useEffect
   });
 
@@ -223,21 +222,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* Ẩn trường Passcode tạm thời */}
-            {/* 
-            <div className="pt-4 border-t border-slate-100">
-              <label className="block text-sm font-bold text-red-700 mb-1 ml-1">Mã xác thực (Passcode)</label>
-              <input 
-                name="passcode" 
-                type="password"
-                value={formData.passcode}
-                onChange={handleChange}
-                placeholder="Nhập mã bí mật của bạn" 
-                required 
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none bg-red-50"
-              />
-            </div>
-            */}
+
             <button disabled={loading} type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 shadow-lg">{loading ? '⏳ Đang gửi...' : '📧 Gửi Email Ứng Tuyển'}</button>
             {status.message && <div className={`p-4 rounded-lg text-center font-bold ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{status.message}</div>}
           </div>

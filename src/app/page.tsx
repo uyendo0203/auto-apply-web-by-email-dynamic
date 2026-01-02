@@ -190,7 +190,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 order-2 lg:order-1">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Tên công ty</label>
               <input name="companyName" value={formData.companyName} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" />
@@ -223,12 +223,12 @@ export default function Home() {
             </div>
 
 
-            <button disabled={loading} type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 shadow-lg">{loading ? '⏳ Đang gửi...' : '📧 Gửi Email Ứng Tuyển'}</button>
+            <button disabled={loading} type="submit" className="sticky bottom-4 w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-blue-700 shadow-lg">{loading ? '⏳ Đang gửi...' : '📧 Gửi Email Ứng Tuyển'}</button>
             {status.message && <div className={`p-4 rounded-lg text-center font-bold ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{status.message}</div>}
           </div>
 
           {/* --- GIỮ NGUYÊN UI CV MANAGER --- */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-1 lg:order-2">
             <div className="bg-slate-50 border-2 border-slate-300 rounded-lg p-4 sticky top-20">
               <h3 className="font-bold text-slate-900 mb-4">📄 Quản lý CV</h3>
               <div className="space-y-3">

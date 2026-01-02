@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 interface CV {
+  id: string;
   name: string;
-  url: string;
-  uploadedAt: string;
+  mimeType: string;
+  webViewLink?: string;
+  modifiedTime?: string;
 }
 
 export default function CVsPage() {
@@ -21,7 +23,12 @@ export default function CVsPage() {
   const loadCVs = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cv-list');
+      const folderId = localStorage.getItem('googleDriveFolderId');
+      let url = '/api/google-drive-cvs';
+      if (folderId) {
+        url += `?folderId=${encodeURIComponent(folderId)}`;
+      }
+      const res = await fetch(url);
       const data = await res.json();
       setCvs(data.cvs || []);
       if (data.cvs && data.cvs.length > 0) {
@@ -34,17 +41,17 @@ export default function CVsPage() {
     }
   };
 
-  const handleDeleteCV = async (filename: string) => {
-    if (!confirm(`Bạn chắc chắn muốn xóa CV: ${filename}?`)) return;
+  const handleDeleteCV = async (fileId: string, fileName: string) => {
+    if (!confirm(`Bạn chắc chắn muốn xóa CV: ${fileName}?`)) return;
 
     try {
-      const res = await fetch(`/api/cv-list?filename=${encodeURIComponent(filename)}`, {
+      const res = await fetch(`/api/cv-manage?fileId=${encodeURIComponent(fileId)}`, {
         method: 'DELETE',
       });
 
       if (res.ok) {
-        setDeleteMessage(`✅ Đã xóa ${filename}`);
-        if (selectedCV?.name === filename) {
+        setDeleteMessage(`✅ Đã xóa ${fileName}`);
+        if (selectedCV?.id === fileId) {
           setSelectedCV(null);
         }
         loadCVs();
@@ -60,20 +67,17 @@ export default function CVsPage() {
 
   const handleSelectCV = (cv: CV) => {
     setSelectedCV(cv);
-    // Lưu vào window global để form sử dụng
-    fetch(cv.url)
-      .then(res => res.blob())
-      .then(blob => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          (window as any).cvFileData = {
-            name: cv.name,
-            base64: event.target?.result,
-            type: blob.type || 'application/octet-stream',
-          };
-        };
-        reader.readAsDataURL(blob);
-      });
+  };
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.includes('pdf')) return '📄';
+    if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
+    return '📋';
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
   return (
@@ -82,6 +86,12 @@ export default function CVsPage() {
         <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
           <h1 className="text-4xl font-extrabold text-slate-900">📄 Quản Lý CV</h1>
           <div className="flex gap-3">
+            <Link
+              href="/settings"
+              className="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-all"
+            >
+              ⚙️ Cấu Hình
+            </Link>
             <Link
               href="/emails"
               className="px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-all"
@@ -125,10 +135,10 @@ export default function CVsPage() {
                 <div className="space-y-3">
                   {cvs.map((cv, index) => (
                     <div
-                      key={cv.name}
+                      key={cv.id}
                       onClick={() => handleSelectCV(cv)}
                       className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                        selectedCV?.name === cv.name
+                        selectedCV?.id === cv.id
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-slate-300 bg-white hover:border-slate-400'
                       }`}
@@ -136,19 +146,19 @@ export default function CVsPage() {
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">#{index + 1}</span>
+                            <span className="text-xl">{getFileIcon(cv.mimeType)}</span>
                             <h3 className="font-bold text-slate-900 text-lg break-all">
                               {cv.name}
                             </h3>
                           </div>
                           <p className="text-sm text-slate-500">
-                            {cv.uploadedAt}
+                            📅 {formatDate(cv.modifiedTime)}
                           </p>
                         </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteCV(cv.name);
+                            handleDeleteCV(cv.id, cv.name);
                           }}
                           className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-semibold text-sm whitespace-nowrap"
                         >
@@ -180,22 +190,16 @@ export default function CVsPage() {
                     </p>
                   </div>
 
-                  <a
-                    href={selectedCV.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-center py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
-                  >
-                    👁️ Xem CV
-                  </a>
-
-                  <a
-                    href={selectedCV.url}
-                    download={selectedCV.name}
-                    className="block w-full text-center py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all"
-                  >
-                    ⬇️ Tải Xuống
-                  </a>
+                  {selectedCV.webViewLink && (
+                    <a
+                      href={selectedCV.webViewLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all"
+                    >
+                      👁️ Xem CV trên Drive
+                    </a>
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-slate-500 py-8">

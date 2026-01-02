@@ -193,7 +193,7 @@ export default function Home() {
           <div className="lg:col-span-2 space-y-4">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Tên công ty</label>
-              <input name="companyName" value={formData.companyName} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" required />
+              <input name="companyName" value={formData.companyName} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none border-slate-300" />
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Vị trí ứng tuyển</label>

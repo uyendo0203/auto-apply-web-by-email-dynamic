@@ -39,3 +39,21 @@ Tổng số email: 1
 
 ---
 
+## 
+- **Email:** nhatrang.ws@gmail.com
+- **Vị Trí:** Frontend Developer
+- **Người liên hệ:** HR Department
+- **CV:** Frontend_Developer_2025.pdf
+- **Ngày gửi:** 12:05:10 2/1/2026
+
+---
+
+## 
+- **Email:** tunguyen.ws@gmail.com
+- **Vị Trí:** Frontend Developer
+- **Người liên hệ:** HR Department
+- **CV:** Frontend_Developer_2025.pdf
+- **Ngày gửi:** 12:05:37 2/1/2026
+
+---
+

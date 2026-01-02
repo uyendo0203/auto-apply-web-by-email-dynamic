@@ -1,34 +1,28 @@
-import Database from 'better-sqlite3';
-import { join } from 'path';
-import { mkdirSync } from 'fs';
+import { sql } from '@vercel/postgres';
 
-let db: Database.Database;
-
-export function getDB() {
-  if (!db) {
-    const dbDir = join(process.cwd(), 'data');
-    mkdirSync(dbDir, { recursive: true });
-    
-    const dbPath = join(dbDir, 'emails.db');
-    db = new Database(dbPath);
-    
-    // Tạo table nếu chưa tồn tại
-    db.exec(`
+// Initialize the database table if it doesn't exist
+export async function initializeDB() {
+  try {
+    await sql`
       CREATE TABLE IF NOT EXISTS sent_emails (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         company_name TEXT NOT NULL,
         job_title TEXT NOT NULL,
         contact_name TEXT,
         recipient_email TEXT NOT NULL,
         email_content TEXT NOT NULL,
         cv_filename TEXT,
-        sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         status TEXT DEFAULT 'success'
-      )
-    `);
+      );
+    `;
+    console.log('✅ Database table initialized');
+  } catch (error) {
+    console.error('Database initialization error:', error);
   }
-  return db;
 }
+
+export { sql };
 
 export interface SentEmail {
   id: number;

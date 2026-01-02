@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { getDB } from '@/lib/db';
+import { sql, initializeDB } from '@/lib/db';
 import { appendFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -61,21 +61,15 @@ export async function POST(req: Request) {
 
     // 6. LƯU VÀO DATABASE
     try {
-      const db = getDB();
-      const stmt = db.prepare(`
-        INSERT INTO sent_emails (company_name, job_title, contact_name, recipient_email, email_content, cv_filename, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
+      await initializeDB();
       
-      const result = stmt.run(
-        companyName,
-        jobTitle,
-        contactName || null,
-        recipientEmail,
-        emailContent,
-        cvFileName || null,
-        'success'
-      );
+      const result = await sql`
+        INSERT INTO sent_emails (company_name, job_title, contact_name, recipient_email, email_content, cv_filename, status)
+        VALUES (${companyName}, ${jobTitle}, ${contactName || null}, ${recipientEmail}, ${emailContent}, ${cvFileName || null}, 'success')
+        RETURNING id
+      `;
+
+      console.log('✅ Email saved to database:', result.rows[0]?.id);
 
       // 7. LƯU VÀO FILE MARKDOWN
       try {
@@ -107,7 +101,7 @@ export async function POST(req: Request) {
         { 
           message: '✅ Email sent successfully', 
           messageId: info.messageId,
-          emailId: result.lastInsertRowid
+          emailId: result.rows[0]?.id
         },
         { status: 200 }
       );

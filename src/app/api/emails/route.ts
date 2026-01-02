@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDB, SentEmail } from '@/lib/db';
+import { sql, SentEmail } from '@/lib/db';
 
 export async function GET(req: Request) {
   try {
@@ -8,19 +8,18 @@ export async function GET(req: Request) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
 
-    const db = getDB();
-    
     // Lấy tổng số bản ghi
-    const countStmt = db.prepare('SELECT COUNT(*) as count FROM sent_emails');
-    const { count } = countStmt.get() as { count: number };
+    const countResult = await sql`SELECT COUNT(*) as count FROM sent_emails`;
+    const count = parseInt(countResult.rows[0]?.count || '0');
 
     // Lấy dữ liệu phân trang
-    const stmt = db.prepare(`
+    const result = await sql`
       SELECT * FROM sent_emails
       ORDER BY sent_at DESC
-      LIMIT ? OFFSET ?
-    `);
-    const emails = stmt.all(limit, offset) as SentEmail[];
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+    
+    const emails = result.rows as SentEmail[];
 
     return NextResponse.json({
       emails,
@@ -49,9 +48,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'ID required' }, { status: 400 });
     }
 
-    const db = getDB();
-    const stmt = db.prepare('DELETE FROM sent_emails WHERE id = ?');
-    stmt.run(id);
+    await sql`DELETE FROM sent_emails WHERE id = ${id}`;
 
     return NextResponse.json({ message: 'Email deleted' });
   } catch (error: any) {

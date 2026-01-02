@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getDB } from '@/lib/db';
+import { sql } from '@/lib/db';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import ExcelJS from 'exceljs';
 
 export async function POST(req: Request) {
   try {
-    const db = getDB();
-    
     // Lấy tất cả email nhà tuyển dụng (recipient_email)
-    const stmt = db.prepare(`
+    const result = await sql`
       SELECT DISTINCT recipient_email, company_name, job_title
       FROM sent_emails
       ORDER BY company_name ASC
-    `);
+    `;
     
-    const emails = stmt.all() as Array<{
+    const emails = result.rows as Array<{
       recipient_email: string;
       company_name: string;
       job_title: string;
@@ -97,16 +95,14 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const db = getDB();
-    
     // Lấy tất cả email nhà tuyển dụng
-    const stmt = db.prepare(`
+    const result = await sql`
       SELECT DISTINCT recipient_email, company_name, job_title
       FROM sent_emails
       ORDER BY company_name ASC
-    `);
+    `;
     
-    const emails = stmt.all() as Array<{
+    const emails = result.rows as Array<{
       recipient_email: string;
       company_name: string;
       job_title: string;

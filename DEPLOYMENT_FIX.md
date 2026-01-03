@@ -45,7 +45,7 @@ vercel --prod
 ### Step 4: Test
 
 Wait 2-3 minutes and try signing in again on:
-https://auto-apply-web-by-email-v2-p7ogxfjfl-uyendo0203s-projects.vercel.app
+https://auto-apply-web-by-email-v2.vercel.app
 
 ## Troubleshooting
 

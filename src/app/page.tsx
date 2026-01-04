@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import type { Session } from 'next-auth';
 
 interface CV {
   id: string;
@@ -42,7 +43,8 @@ export default function Home() {
 
   // Load CVs from Google Drive
   useEffect(() => {
-    if (session?.accessToken) {
+    const extendedSession = session as Session & { accessToken?: string };
+    if (extendedSession?.accessToken) {
       loadCVs();
     }
   }, [session]);
@@ -124,6 +126,70 @@ export default function Home() {
 
   if (status === 'loading') {
     return <div className="min-h-screen flex items-center justify-center">⏳ Loading...</div>;
+  }
+
+  // Show landing page if not authenticated
+  if (status === 'unauthenticated') {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-800 text-white">
+        {/* Navigation Bar */}
+        <nav className="flex justify-between items-center p-4 md:p-6 max-w-7xl mx-auto">
+          <div className="text-2xl font-bold flex items-center gap-2">
+            🚀 Auto Apply Web V2
+          </div>
+          <div className="flex gap-4">
+            <a href="/privacy" className="text-sm hover:text-blue-200 transition">Privacy</a>
+            <a href="/terms" className="text-sm hover:text-blue-200 transition">Terms</a>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-20">
+          <div className="max-w-3xl text-center space-y-8">
+            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+              Ứng Tuyển Công Việc<br />Chỉ Trong Tích Tắc
+            </h1>
+            
+            <p className="text-lg md:text-xl text-blue-100">
+              Gửi CV chuyên nghiệp với email được thiết kế sẵn. Kết nối Google Drive, chọn CV, và gửi ứng tuyển ngay!
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-6 my-12">
+              <div className="bg-white/10 backdrop-blur p-6 rounded-lg">
+                <div className="text-4xl mb-3">📁</div>
+                <h3 className="font-bold text-lg mb-2">Google Drive</h3>
+                <p className="text-sm text-blue-100">Kết nối với Google Drive để quản lý CV</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur p-6 rounded-lg">
+                <div className="text-4xl mb-3">✉️</div>
+                <h3 className="font-bold text-lg mb-2">Email Tự động</h3>
+                <p className="text-sm text-blue-100">Template email chuẩn mà bạn có thể tùy chỉnh</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur p-6 rounded-lg">
+                <div className="text-4xl mb-3">🏃</div>
+                <h3 className="font-bold text-lg mb-2">Gửi Nhanh</h3>
+                <p className="text-sm text-blue-100">Gửi ứng tuyển chuyên nghiệp ngay lập tức</p>
+              </div>
+            </div>
+
+            {/* Login Button - Redirects to signin */}
+            <div className="pt-8">
+              <a
+                href="/auth/signin"
+                className="inline-block px-8 py-4 bg-white text-blue-600 font-bold text-lg rounded-lg hover:bg-blue-50 transition-all shadow-lg"
+              >
+                🔐 Đăng Nhập với Google
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="bg-blue-900 text-center py-6 text-blue-200 text-sm">
+          <p>© 2026 Auto Apply Web V2. All rights reserved.</p>
+        </footer>
+      </main>
+    );
   }
 
   return (

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Auto Apply Tool",
-  description: "Gửi CV chuyên nghiệp chỉ trong tích tắc",
+  title: "Auto Apply Web V2 - Gửi CV Chuyên Nghiệp",
+  description: "Ứng tuyển công việc tự động, gửi CV chuyên nghiệp chỉ trong tích tắc",
 };
 
 export default function RootLayout({

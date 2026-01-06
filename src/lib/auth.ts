@@ -88,6 +88,9 @@ export const authConfig = {
 } as const;
 
 const result = (NextAuth as any)(authConfig);
+console.log("✅ NextAuth initialized successfully");
+console.log("Handlers available:", !!result.handlers);
+
 export const handlers = result.handlers;
 export const auth = result.auth;
 export const signIn = result.signIn;

@@ -1,9 +1,10 @@
-import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
+import type { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { getServerSession } from "next-auth/next";
 
-const config = {
+export const authOptions: NextAuthOptions = {
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
@@ -20,9 +21,14 @@ const config = {
     signIn: "/auth/signin",
   },
   secret: process.env.NEXTAUTH_SECRET!,
-  trustHost: true,
+  session: {
+    strategy: "jwt",
+  },
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET!,
+  },
   callbacks: {
-    jwt({ token, account }: any) {
+    async jwt({ token, account }: any) {
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
@@ -30,8 +36,8 @@ const config = {
       }
       return token;
     },
-    session({ session, token }: any) {
-      if (session) {
+    async session({ session, token }: any) {
+      if (session && session.user) {
         session.accessToken = token.accessToken;
         session.refreshToken = token.refreshToken;
         session.expiresAt = token.expiresAt;
@@ -41,5 +47,5 @@ const config = {
   },
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config);
+export const auth = () => getServerSession(authOptions);
 

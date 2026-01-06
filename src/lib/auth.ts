@@ -33,11 +33,13 @@ export const authConfig = {
   trustHost: true,
   callbacks: {
     async jwt({ token, account }: { token: JWT; account: any }) {
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = account.expires_at;
-      }
+      try {
+        if (account) {
+          token.accessToken = account.access_token;
+          token.refreshToken = account.refresh_token;
+          token.expiresAt = account.expires_at;
+          console.log("✅ JWT updated with account data");
+        }
 
       // Check if token has expired and refresh if needed
       if (token.expiresAt && Date.now() >= (token.expiresAt as number) * 1000) {
@@ -75,14 +77,26 @@ export const authConfig = {
       }
 
       return token;
+      } catch (error) {
+        console.error("❌ JWT callback error:", error);
+        return token;
+      }
     },
     async session({ session, token }: { session: Session; token: JWT }) {
-      if (session) {
-        session.accessToken = token.accessToken as string;
-        session.refreshToken = token.refreshToken as string;
-        session.expiresAt = token.expiresAt as number;
+      try {
+        if (session) {
+          // Type assertion to bypass TypeScript strict checking
+          const extendedSession = session as any;
+          extendedSession.accessToken = token.accessToken || null;
+          extendedSession.refreshToken = token.refreshToken || null;
+          extendedSession.expiresAt = token.expiresAt || null;
+          console.log("✅ Session updated with token data");
+        }
+        return session;
+      } catch (error) {
+        console.error("❌ Session callback error:", error);
+        throw error;
       }
-      return session;
     },
   },
 } as const;

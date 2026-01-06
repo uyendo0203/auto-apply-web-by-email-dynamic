@@ -43,11 +43,11 @@ export default function Home() {
 
   // Load CVs from Google Drive
   useEffect(() => {
-    const extendedSession = session as Session & { accessToken?: string };
-    if (extendedSession?.accessToken) {
+    if (session?.user?.email) {
+      console.log("👤 User authenticated, loading CVs");
       loadCVs();
     }
-  }, [session]);
+  }, [session?.user?.email]);
 
   // Auto-update email content when form data changes
   useEffect(() => {

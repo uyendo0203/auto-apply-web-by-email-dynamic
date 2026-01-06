@@ -43,13 +43,8 @@ export const authConfig = {
     },
 
     async session({ session, token }: { session: Session; token: JWT }) {
-      console.log("📊 Session callback");
-      const sessionData = session as any;
-      sessionData.accessToken = token.accessToken;
-      sessionData.refreshToken = token.refreshToken;
-      sessionData.expiresAt = token.expiresAt;
-      console.log("✅ Session data set");
-      return sessionData;
+      console.log("📊 Session callback - returning session as-is");
+      return session;
     },
   },
 } as const;

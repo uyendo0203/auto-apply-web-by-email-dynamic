@@ -15,7 +15,7 @@ function createOAuth2Client(accessToken: string): OAuth2Client {
 
 export async function DELETE(req: Request) {
   try {
-    const session = await auth();
+    const session = await auth() as any;
 
     if (!session?.accessToken) {
       return NextResponse.json(

@@ -7,7 +7,7 @@ import { downloadFileAsBuffer } from "@/lib/google-drive";
 export async function POST(req: Request) {
   try {
     // Kiểm tra session
-    const session = await auth();
+    const session = await auth() as any;
 
     if (!session || !session.user?.email) {
       return NextResponse.json(

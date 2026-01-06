@@ -4,7 +4,7 @@ import { listCVsFromDrive } from "@/lib/google-drive";
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
+    const session = await auth() as any;
     console.log("Session:", session?.user?.email);
 
     if (!session?.accessToken) {

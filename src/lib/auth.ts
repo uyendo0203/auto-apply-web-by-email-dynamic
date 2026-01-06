@@ -7,12 +7,6 @@ export const authOptions: any = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
-      authorization: {
-        params: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,

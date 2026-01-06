@@ -11,15 +11,10 @@ export const authOptions: any = {
         params: {
           access_type: "offline",
           prompt: "consent",
-          scope: "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/gmail.send",
         },
       },
     }),
   ],
-  pages: {
-    signIn: "/auth/signin",
-    error: "/api/auth/error",
-  },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
@@ -40,13 +35,6 @@ export const authOptions: any = {
         session.expiresAt = token.expiresAt;
       }
       return session;
-    },
-    async redirect({ url, baseUrl }: any) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
     },
   },
 };

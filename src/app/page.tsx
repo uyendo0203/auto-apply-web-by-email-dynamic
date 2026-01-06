@@ -44,8 +44,15 @@ export default function Home() {
   // Load CVs from Google Drive
   useEffect(() => {
     const extendedSession = session as Session & { accessToken?: string };
+    console.log("Session updated:", { 
+      hasSession: !!session,
+      hasAccessToken: !!extendedSession?.accessToken,
+      user: session?.user?.email
+    });
     if (extendedSession?.accessToken) {
       loadCVs();
+    } else if (session?.user?.email) {
+      console.log("Session exists but no accessToken yet");
     }
   }, [session]);
 

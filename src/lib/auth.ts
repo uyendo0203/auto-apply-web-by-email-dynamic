@@ -3,6 +3,13 @@ import Google from "next-auth/providers/google";
 import type { JWT } from "next-auth/jwt";
 import type { Session } from "next-auth";
 
+// Debug logging
+console.log("🔍 Auth Config Loading...");
+console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET ? "✓ Set" : "❌ Missing");
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "✓ Set" : "❌ Missing");
+console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET ? "✓ Set" : "❌ Missing");
+
 export const authConfig = {
   providers: [
     Google({

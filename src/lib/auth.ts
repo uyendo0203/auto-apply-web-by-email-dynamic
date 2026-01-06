@@ -18,6 +18,9 @@ export const authConfig = {
       },
     }),
   ],
+  pages: {
+    signIn: "/auth/signin",
+  },
   secret: process.env.NEXTAUTH_SECRET!,
   trustHost: true,
   callbacks: {

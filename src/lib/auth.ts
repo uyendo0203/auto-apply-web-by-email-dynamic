@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth/next";
 export const authOptions: any = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -16,6 +16,10 @@ export const authOptions: any = {
       },
     }),
   ],
+  pages: {
+    signIn: "/auth/signin",
+    error: "/api/auth/error",
+  },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
@@ -36,6 +40,13 @@ export const authOptions: any = {
         session.expiresAt = token.expiresAt;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }: any) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
 };

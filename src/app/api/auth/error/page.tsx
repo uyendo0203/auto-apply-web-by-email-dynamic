@@ -1,9 +1,10 @@
 'use client';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 
-export default function ErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -36,5 +37,13 @@ export default function ErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <ErrorContent />
+    </Suspense>
   );
 }

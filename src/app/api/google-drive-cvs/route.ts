@@ -5,30 +5,46 @@ import { listCVsFromDrive } from "@/lib/google-drive";
 export async function GET(req: Request) {
   try {
     const session = await auth() as any;
-    console.log("Session:", session?.user?.email);
-
     if (!session?.accessToken) {
-      console.error("No access token found");
       return NextResponse.json(
-        { error: "Not authenticated" },
+        { error: "Not authenticated. Please sign in again." },
         { status: 401 }
       );
     }
 
-    // Get folder ID from query params or use default
     const { searchParams } = new URL(req.url);
     const folderId = searchParams.get("folderId");
 
-    console.log("Fetching CVs from Google Drive...");
-    const files = await listCVsFromDrive(session.accessToken, folderId || undefined);
-    console.log("CVs found:", files.length);
-
-    return NextResponse.json({ cvs: files });
+    try {
+      const files = await listCVsFromDrive(session.accessToken, folderId || undefined);
+      return NextResponse.json({ cvs: files });
+    } catch (driveError: any) {
+      if (driveError.status === 401) {
+        return NextResponse.json(
+          { error: "Google token expired. Please sign in again.", code: "TOKEN_EXPIRED" },
+          { status: 401 }
+        );
+      }
+      if (driveError.status === 403) {
+        return NextResponse.json(
+          { error: "Permission denied. Check folder access.", code: "PERMISSION_DENIED" },
+          { status: 403 }
+        );
+      }
+      if (driveError.status === 404) {
+        return NextResponse.json(
+          { error: "Folder not found. Check folder ID.", code: "FOLDER_NOT_FOUND" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(
+        { error: driveError.message || "Failed to fetch CVs", details: driveError.errors },
+        { status: 500 }
+      );
+    }
   } catch (error: any) {
-    console.error("Error fetching CVs:", error);
-    console.error("Error details:", error.message, error.errors);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch CVs", details: error.errors },
+      { error: error.message || "Failed to fetch CVs" },
       { status: 500 }
     );
   }

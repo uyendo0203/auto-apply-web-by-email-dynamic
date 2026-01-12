@@ -135,66 +135,38 @@ export default function Home() {
     return <div className="min-h-screen flex items-center justify-center">⏳ Loading...</div>;
   }
 
-  // Show landing page if not authenticated
+  // --- PUBLIC HOMEPAGE SECTION FOR GOOGLE OAUTH ---
   if (status === 'unauthenticated') {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-blue-600 to-blue-800 text-white">
-        {/* Navigation Bar */}
-        <nav className="flex justify-between items-center p-4 md:p-6 max-w-7xl mx-auto">
-          <div className="text-2xl font-bold flex items-center gap-2">
-            🚀 Auto Apply Web V2
-          </div>
-          <div className="flex gap-4">
-            <a href="/privacy" className="text-sm hover:text-blue-200 transition">Privacy</a>
-            <a href="/terms" className="text-sm hover:text-blue-200 transition">Terms</a>
-          </div>
-        </nav>
-
-        {/* Hero Section */}
-        <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-20">
-          <div className="max-w-3xl text-center space-y-8">
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-              Ứng Tuyển Công Việc<br />Chỉ Trong Tích Tắc
-            </h1>
-            
-            <p className="text-lg md:text-xl text-blue-100">
-              Gửi CV chuyên nghiệp với email được thiết kế sẵn. Kết nối Google Drive, chọn CV, và gửi ứng tuyển ngay!
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6">
+        <div className="max-w-2xl w-full mx-auto text-center space-y-8">
+          <h1 className="text-4xl font-extrabold text-slate-900 flex items-center justify-center gap-2">
+            <span>Auto Apply Tool</span> <span className="text-5xl">🚀</span>
+          </h1>
+          <p className="text-lg text-slate-700">Gửi CV chuyên nghiệp chỉ trong tích tắc</p>
+          <section className="bg-white rounded-xl shadow-lg p-6 space-y-4 border border-slate-200">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">What does Auto Apply Tool do?</h2>
+            <ul className="list-disc list-inside text-slate-700 text-left mx-auto max-w-lg space-y-2">
+              <li>Connects to your Google Drive to list and select your CV files.</li>
+              <li>Sends job application emails directly from your Gmail account.</li>
+              <li>Never stores your CV files on our servers.</li>
+              <li>Keeps a history of your sent applications for your reference.</li>
+            </ul>
+          </section>
+          <section className="bg-white rounded-xl shadow-lg p-6 space-y-4 border border-slate-200">
+            <h2 className="text-xl font-semibold text-slate-900">Why do we need your Google data?</h2>
+            <p className="text-slate-700">
+              We request access to your Google Drive to list and select your CV files, and to your Gmail to send job application emails on your behalf. We do <strong>not</strong> store your CV files or access any other data.
             </p>
-
-            <div className="grid md:grid-cols-3 gap-6 my-12">
-              <div className="bg-white/10 backdrop-blur p-6 rounded-lg">
-                <div className="text-4xl mb-3">📁</div>
-                <h3 className="font-bold text-lg mb-2">Google Drive</h3>
-                <p className="text-sm text-blue-100">Kết nối với Google Drive để quản lý CV</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur p-6 rounded-lg">
-                <div className="text-4xl mb-3">✉️</div>
-                <h3 className="font-bold text-lg mb-2">Email Tự động</h3>
-                <p className="text-sm text-blue-100">Template email chuẩn mà bạn có thể tùy chỉnh</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur p-6 rounded-lg">
-                <div className="text-4xl mb-3">🏃</div>
-                <h3 className="font-bold text-lg mb-2">Gửi Nhanh</h3>
-                <p className="text-sm text-blue-100">Gửi ứng tuyển chuyên nghiệp ngay lập tức</p>
-              </div>
-            </div>
-
-            {/* Login Button - Redirects to signin */}
-            <div className="pt-8">
-              <a
-                href="/auth/signin"
-                className="inline-block px-8 py-4 bg-white text-blue-600 font-bold text-lg rounded-lg hover:bg-blue-50 transition-all shadow-lg"
-              >
-                🔐 Đăng Nhập với Google
-              </a>
-            </div>
+            <p className="text-slate-700">
+              See our <a href="/privacy" className="text-blue-600 underline">Privacy Policy</a> for full details.
+            </p>
+          </section>
+          <div className="flex flex-wrap gap-4 justify-center mt-6">
+            <Link href="/privacy" className="text-sm text-slate-600 underline">Privacy Policy</Link>
+            <Link href="/terms" className="text-sm text-slate-600 underline">Terms of Service</Link>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="bg-blue-900 text-center py-6 text-blue-200 text-sm">
-          <p>© 2026 Auto Apply Web V2. All rights reserved.</p>
-        </footer>
       </main>
     );
   }
